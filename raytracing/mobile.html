@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <style>
+      #game_canv {
+        width: 100%;
+        height: 50%;
+      }
+    </style>
+    <canvas
+      id="game_canv"
+      width="700"
+      height="700"
+      style="border: 1px solid black"
+    ></canvas>
+    <script>
+      const WIDTH = (HEIGHT = 700);
+      const cpr = (a, c, b) => c > a && c < b;
+      function line(x1, y1, x2, y2, color = "white", strokeWidth = 1) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = strokeWidth;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      function lineLine(x1, y1, x2, y2, x3, y3, x4, y4) {
+        // calculate the distance to intersection point
+        const uA =
+          ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) /
+          ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+        const uB =
+          ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) /
+          ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+
+        // if uA and uB are between 0-1, lines are colliding
+        if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+          // optionally, draw a circle where the lines meet
+          const intersectionX = x1 + uA * (x2 - x1);
+          const intersectionY = y1 + uA * (y2 - y1);
+
+          return { intersectionX, intersectionY };
+        }
+        return false;
+      }
+      const offsetX = WIDTH / 2;
+      const offsetY = HEIGHT / 2;
+      const { sqrt, sin, cos, atan, abs } = Math;
+      const toRad = (deg) => (deg * Math.PI) / 180;
+
+      class Ray {
+        constructor(angle, globalAngle) {
+          this.initX = null;
+          this.initY = null;
+          this.angle = angle;
+          this.globalAngle = globalAngle;
+          this.vector = {};
+        }
+
+        update(mouseX, mouseY, AnglesList) {
+          const theta = this.globalAngle;
+          const X = Math.abs(WIDTH - mouseX);
+          const Y = Math.abs(HEIGHT - mouseY);
+
+          const BETA = 0;
+          const BETA_1 = 1;
+          const BETA_2 = 2;
+          const BETA_3 = 3;
+
+          // Problem: JS uses Radians, the code is built with Degrees
+
+          this.AnglesList = AnglesList;
+
+          const alpha = 180 - theta;
+          const Phi = 90 - (270 - theta);
+          const Phi_1 = 270 - theta;
+          const Phi_2 = 90 - (360 - theta);
+          const Phi_3 = 360 - theta;
+
+          if (theta === 0) {
+            this.vector.x = WIDTH;
+            this.vector.y = mouseY;
+          } else if (theta === 90) {
+            this.vector.x = mouseX;
+            this.vector.y = 0;
+          } else if (theta === 180) {
+            this.vector.x = 0;
+            this.vector.y = mouseY;
+          } else if (theta === 270) {
+            this.vector.x = mouseX;
+            this.vector.Y = HEIGHT;
+          }
+
+          if (cpr(0, theta, AnglesList[BETA])) {
+            this.vector.y =
+              mouseY - sin(toRad(theta)) * (X / cos(toRad(theta)));
+            this.vector.x = WIDTH;
+          }
+          if (cpr(AnglesList[BETA], theta, 90)) {
+            this.vector.y = 0;
+            this.vector.x =
+              mouseX + (cos(toRad(theta)) * mouseY) / sin(toRad(theta));
+          }
+
+          if (cpr(90, theta, 180 - AnglesList[BETA_1])) {
+            this.vector.y = 0;
+            this.vector.x =
+              mouseX - (cos(toRad(alpha)) * mouseY) / sin(toRad(alpha));
+          }
+
+          if (cpr(180 - AnglesList[BETA_1], theta, 180)) {
+            this.vector.y =
+              mouseY - sin(toRad(alpha)) * (mouseX / cos(toRad(alpha)));
+            this.vector.x = 0;
+          }
+
+          if (cpr(180, theta, 180 + AnglesList[BETA_2])) {
+            this.vector.y =
+              mouseY + sin(toRad(Phi)) * (mouseX / cos(toRad(Phi)));
+            this.vector.x = 0;
+          }
+
+          if (cpr(180 + AnglesList[BETA_2], theta, 270)) {
+            this.vector.y = HEIGHT;
+            this.vector.x =
+              mouseX - sin(toRad(Phi_1)) * (Y / cos(toRad(Phi_1)));
+          }
+
+          if (cpr(270, theta, 270 + AnglesList[BETA_3])) {
+            this.vector.y = HEIGHT;
+            this.vector.x =
+              mouseX + sin(toRad(Phi_2)) * (Y / cos(toRad(Phi_2)));
+          }
+
+          if (cpr(270 + AnglesList[BETA_3], theta, 360)) {
+            this.vector.y =
+              mouseY + sin(toRad(Phi_3)) * (X / cos(toRad(Phi_3)));
+            this.vector.x = WIDTH;
+          }
+
+          this.initX = mouseX;
+          this.initY = mouseY;
+        }
+
+        show(walls) {
+          // if(cpr(0, this.globalAngle, this.AnglesList[0])) line(this.initX, this.initY, this.vector.x, this.vector.y, "red")
+          // if(cpr(this.AnglesList[0], this.globalAngle, 90)) line(this.initX, this.initY, this.vector.x, this.vector.y, "blue")
+          // if(cpr(90, this.globalAngle, this.AnglesList[1])) line(this.initX, this.initY, this.vector.x, this.vector.y, "white")
+          const memory = [];
+          walls.forEach((wall) => {
+            const collisionPoint = lineLine(
+              this.vector.x,
+              this.vector.y,
+              this.initX,
+              this.initY,
+              wall.initX,
+              wall.initY,
+              wall.endX,
+              wall.endY
+            );
+            memory.push(collisionPoint);
+          });
+
+          let init = 0;
+
+          for (let i = 0; i < memory.length; i++) {
+            if (i == init) continue;
+            const H = sqrt(
+              abs(memory[init].intersectionX - this.initX) ** 2 +
+                abs(memory[init].intersectionY - this.initY) ** 2
+            );
+            const H_1 = sqrt(
+              abs(memory[i].intersectionX - this.initX) ** 2 +
+                abs(memory[i].intersectionY - this.initY) ** 2
+            );
+            if (H < H_1) continue;
+            init = i;
+          }
+
+          const collisionPoint = memory[init];
+
+          if (!collisionPoint)
+            line(this.initX, this.initY, this.vector.x, this.vector.y, "white");
+          if (collisionPoint) {
+            line(
+              this.initX,
+              this.initY,
+              Math.floor(collisionPoint.intersectionX),
+              Math.floor(collisionPoint.intersectionY)
+            );
+          }
+        }
+      }
+      class Wall {
+        constructor(initX, initY, endX, endY) {
+          // y = mx + b
+          this.m;
+          this.b;
+          this.initX = initX;
+          this.initY = initY;
+          this.endX = endX;
+          this.endY = endY;
+        }
+
+        computeEquation() {
+          this.m = (this.initY - this.endY) / (this.initX * this.endX);
+          this.b = this.endY / (this.m * this.endX);
+          if (this.m === Infinity || this.m == -Infinity) this.m = 1;
+          if (this.b === 0) this.b = 0;
+          console.log(
+            `${this.m.toString().slice(0, 6)}x ${this.b >= 0 ? "+" : ""} ${
+              this.b
+            }`
+          );
+        }
+
+        equation() {
+          console.log(
+            `${this.m.toString().slice(0, 5)}x ${this.b >= 0 ? "+" : ""} ${
+              this.b
+            }`
+          );
+        }
+
+        show() {
+          line(this.initX, this.initY, this.endX, this.endY, "red", 6);
+        }
+      }
+
+      const canv = document.getElementById("game_canv");
+      const ctx = canv.getContext("2d");
+      const ray_test = [];
+      const walls = [];
+      let memory = [];
+
+      let AnglesList = [];
+      let X, Y;
+
+      canv.addEventListener("touchmove", (evt) => {
+        memory = [evt.pageX, evt.pageY];
+        draw();
+      });
+
+      canv.addEventListener("mousemove", (evt) => {
+        memory = [evt.pageX, evt.pageY];
+      });
+
+      function lineLine(x1, y1, x2, y2, x3, y3, x4, y4) {
+        // calculate the distance to intersection point
+        const uA =
+          ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) /
+          ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+        const uB =
+          ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) /
+          ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+
+        // if uA and uB are between 0-1, lines are colliding
+        if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+          // optionally, draw a circle where the lines meet
+          const intersectionX = x1 + uA * (x2 - x1);
+          const intersectionY = y1 + uA * (y2 - y1);
+
+          return { intersectionX, intersectionY };
+        }
+        return false;
+      }
+
+      function setup() {
+        for (let angle = 0; angle <= 360; angle += 1) {
+          ray_test.push(new Ray(1, angle));
+        }
+
+        // ray_test.push(new Ray(1, 1))
+        // walls.push(new Wall(0, 0, 400, 400))
+        // walls.push(new Wall(400, 400, 700, 0))
+        // walls.push(new Wall(0, 500, 700, 500))
+
+        for (let i = 0; i < 1; i++) {
+          let randX_1 = Math.random() * WIDTH;
+          let randY_1 = Math.random() * HEIGHT;
+
+          let randX_2 = Math.random() * WIDTH;
+          let randY_2 = Math.random() * HEIGHT;
+
+          let wall = new Wall(randX_1, randY_1, randX_2, randY_2);
+          wall.computeEquation();
+          walls.push(wall);
+        }
+      }
+
+      function draw() {
+        const [mouseX, mouseY] = memory;
+        X = WIDTH - mouseX;
+        Y = HEIGHT - mouseY;
+
+             AnglesList = [
+          (atan(mouseY / X) * 180) / Math.PI,
+          (atan(mouseY / mouseX) * 180) / Math.PI,
+          (atan(Y / mouseX) * 180) / Math.PI,
+          (atan(X / Y) * 180) / Math.PI,
+        ];
+
+        ctx.fill = "black";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        walls.forEach((wall) => {
+          wall.show();
+        });
+
+        ray_test.forEach((ray) => {
+          // console.log(chunks);
+
+          ray.update(mouseX, mouseY, AnglesList);
+          ray.show(walls);
+        });
+      }
+
+      setup();
+      setInterval(draw, 500)
+    </script>
+  </body>
+</html>

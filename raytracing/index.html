@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas
+      id="game_canv"
+      width="1000"
+      height="700"
+      style="border: 1px solid black"
+    ></canvas>
+    <script>
+      const WIDTH = 1000
+      const HEIGHT = 700
+      const cpr = (a, c, b) => c > a && c < b;
+      function line(x1, y1, x2, y2, color = "white", strokeWidth = 1) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = strokeWidth;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      function ellipse(x, y, rx, ry, rotation, start_angle, end_angle) {
+        ctx.beginPath()
+        ctx.ellipse(x, y, rx, ry, rotation, start_angle, end_angle)
+        ctx.stroke()
+      }
+      function lineLine(x1, y1, x2, y2, x3, y3, x4, y4) {
+        // calculate the distance to intersection point
+        const uA =
+          ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) /
+          ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+        const uB =
+          ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) /
+          ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+
+        // if uA and uB are between 0-1, lines are colliding
+        if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+          // optionally, draw a circle where the lines meet
+          const intersectionX = x1 + uA * (x2 - x1);
+          const intersectionY = y1 + uA * (y2 - y1);
+
+          return { intersectionX, intersectionY };
+        }
+        return false;
+      }
+    </script>
+    <script src="ray.js" defer></script>
+    <script src="wall.js" defer></script>
+    <script src="main.js" defer></script>
+  </body>
+</html>

@@ -98,31 +98,14 @@ function setup() {
     new Wall(150 + xoff*2, 20 + yoff, 150 + xoff*2, 140 + yoff)
   ] 
 
-  for(const side of square){
-    side.computeEquation()
-    walls.push(side)
-  }  
-  for(const side of square2){
-    side.computeEquation()
-    walls.push(side)
-  }
+ 
   // add walls that are the edges of the canvas
   walls.push(new Wall(0, 0, WIDTH, 0))
   walls.push(new Wall(WIDTH, 0, WIDTH, HEIGHT))
   walls.push(new Wall(0, HEIGHT, WIDTH, HEIGHT))
   walls.push(new Wall(0, 0, 0, HEIGHT))
 
-  for (let i = 0; i < 2; i++) {
-    let randX_1 = Math.random() * WIDTH
-    let randY_1 = Math.random() * HEIGHT
-
-    let randX_2 = Math.random() * WIDTH
-    let randY_2 = Math.random() * HEIGHT
-
-    let wall = new Wall(randX_1, randY_1, randX_2, randY_2)
-    wall.computeEquation()
-    walls.push(wall)
-  }
+ 
 }
 window.addEventListener("keydown", (e) => {
     keys[e.key] = true;

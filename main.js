@@ -8,7 +8,23 @@ const vision = []
 let keys = {}
 let memory = [0,0]
 let playerAngle = 37.5
+let count = 0
 let isHidden = false
+canv.onclick = evt => {
+  count++
+  const rect = canv.getBoundingClientRect()
+  const mouseX = evt.clientX - rect.left
+  const mouseY = evt.clientY - rect.top
+  console.log(count, pointMemory);
+  if (count % 2 == 0 && pointMemory.length != 0) {
+    const wall = new Wall(pointMemory[0].x, pointMemory[0].y, mouseX, mouseY)
+    wall.computeEquation()
+    walls.push(wall)
+    pointMemory.pop()
+    return
+  }
+  pointMemory[0] = { x: mouseX, y: mouseY }
+}
 
 function hide() {
   if(isHidden) {

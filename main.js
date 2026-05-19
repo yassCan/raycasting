@@ -5,6 +5,7 @@ const ray_test = []
 const walls = []
 const FOV = 40
 const vision = []
+const pointMemory = []
 let keys = {}
 let memory = [0,0]
 let playerAngle = 37.5
